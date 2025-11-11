@@ -1,11 +1,14 @@
 #ifndef SOLVER_H_
 #define SOLVER_H_
 
+#include <iostream>
 #include <vector>
+
+#include "../../include/Data.h"
 
 struct Solution {
     std::vector<int> sequence;
-    double value;
+    double cost;
 
     void Print();
 };
@@ -15,7 +18,7 @@ public:
     Solver() = default;
     ~Solver() = default;
 
-    virtual Solution Solve();
+    virtual Solution Solve(Data& d);
 private:
     
 };
