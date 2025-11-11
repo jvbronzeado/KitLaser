@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 
-#include "../../include/Data.h"
+#include "Data.h"
 
 struct Solution {
     std::vector<int> sequence;

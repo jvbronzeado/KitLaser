@@ -1,4 +1,4 @@
-#include "../../include/solvers/solver.h"
+#include "solvers/solver.h"
 
 void Solution::Print()
 {

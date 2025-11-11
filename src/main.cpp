@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <filesystem>
 
-#include "../include/Data.h"
+#include "Data.h"
 
 enum Solvers
 {

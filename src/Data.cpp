@@ -1,6 +1,6 @@
 // from https://github.com/cvneves/kit-opt/blob/master/GILS-RVND-TSP/leitor-instancias/src
 
-#include "../include/Data.h"
+#include "Data.h"
 
 //Inicializador
 Data::Data( int qtParam, const char * instance ):
