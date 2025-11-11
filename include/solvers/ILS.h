@@ -10,7 +10,7 @@
 
 struct ILSInsertionInfo
 {
-    int inserted_node;
+    int node_index;
     int removed_edge;
     double cost;
 };
@@ -30,7 +30,8 @@ private:
 
     // helper functions
     void GenerateRandom3Sequence();
-    void GenerateInsertionCosts(Solution& s, size_t starting_i);
+    void GenerateInsertionCosts(Solution& s);
+    bool BestImprovementSwap(Solution& s);
 
     Data* current_data;
 
