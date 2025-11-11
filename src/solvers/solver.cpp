@@ -6,3 +6,8 @@ void Solution::Print()
         std::cout << this->sequence[i] << " -> ";
     std::cout << this->sequence.back() << std::endl;
 }
+
+Solution Solver::Solve(Data& d)
+{
+    return Solution();
+}

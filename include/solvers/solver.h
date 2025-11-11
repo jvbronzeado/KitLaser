@@ -16,7 +16,7 @@ struct Solution {
 class Solver {
 public:
     Solver() = default;
-    ~Solver() = default;
+    virtual ~Solver() = default;
 
     virtual Solution Solve(Data& d);
 private:

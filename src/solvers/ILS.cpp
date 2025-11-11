@@ -53,5 +53,5 @@ Solution ILS::Pertubacao(Solution& s)
 
 void ILS::BuscaLocal(Solution& s)
 {
-    
+   
 }
