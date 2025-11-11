@@ -38,5 +38,6 @@ bin/
 
 # Clangd
 compile_commands.json
+.cache/
 
 # End of https://www.toptal.com/developers/gitignore/api/c++

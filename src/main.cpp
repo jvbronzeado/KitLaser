@@ -6,7 +6,10 @@
 
 #include "Data.h"
 
-enum Solvers
+#include "solvers/solver.h"
+#include "solvers/ILS.h"
+
+enum SolverType
 {
     None,
     ILS,
@@ -14,7 +17,7 @@ enum Solvers
 };
 
 std::vector<std::string> inputs;
-Solvers active_solver = Solvers::ILS;
+SolverType active_solver = SolverType::ILS;
 bool benchmark = false;
 
 // argument parsing stuff
@@ -48,17 +51,29 @@ void display_help_message()
 }
 //
 
-Solvers get_solver_from_name(const std::string& solver)
+SolverType get_solver_from_name(const std::string& solver)
 {
     if(solver == "ILS")
     {
-        return Solvers::ILS;
+        return SolverType::ILS;
     }
     else if(solver == "All")
     {
-        return Solvers::All;
+        return SolverType::All;
     }
-    return Solvers::None;
+    return SolverType::None;
+}
+
+Solver* allocate_solver_from_type(SolverType type)
+{    switch(type)
+    {
+        case ILS:
+            return new ILSSolver();
+        case None:
+        case All:
+        default:
+            return nullptr;
+    }
 }
 
 int main(int argc, const char* argv[])
@@ -86,7 +101,7 @@ int main(int argc, const char* argv[])
     if(!chosen_solver.empty())
     {
         active_solver = get_solver_from_name(chosen_solver);
-        if(active_solver == Solvers::None)
+        if(active_solver == SolverType::None)
         {
             // invalid
             std::cerr << "unknown solver " << chosen_solver << "\nuse --help option for more info\n";
@@ -120,17 +135,24 @@ int main(int argc, const char* argv[])
         return -1;
     }
 
+    Solver* solver = allocate_solver_from_type(active_solver);
+    if(solver == nullptr)
+    {
+        std::cerr << "failed to allocate solver" << std::endl;
+        return -1;
+    }
+
+    // TODO: All solvers
+    
     // TODO: Benchmarking
     for(std::string& path : inputs)
     {
         Data d = Data(2, path.c_str());
         d.read();
-        size_t n = d.getDimension();
 
-        std::cout << "Dimension: " << n << std::endl;
-        std::cout << "DistanceMatrix: " << std::endl;
-        d.printMatrixDist();
+        solver->Solve(d);
     }
-        
+
+    delete solver;
     return 0;
 }
