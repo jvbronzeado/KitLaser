@@ -3,7 +3,7 @@
 #include "../include/Data.h"
 
 //Inicializador
-Data::Data( int qtParam, char * instance ):
+Data::Data( int qtParam, const char * instance ):
 xCoord(NULL),
 yCoord(NULL),
 distMatrix(NULL){

@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <filesystem>
 
+#include "../include/Data.h"
+
 enum Solvers
 {
     None,
@@ -87,7 +89,7 @@ int main(int argc, const char* argv[])
         if(active_solver == Solvers::None)
         {
             // invalid
-            std::cerr << "unknown solver " << chosen_solver << "\nuse --help options for more info\n";
+            std::cerr << "unknown solver " << chosen_solver << "\nuse --help option for more info\n";
             return -1;
         }
     }
@@ -111,7 +113,24 @@ int main(int argc, const char* argv[])
             }
         }
     }
-    
-    std::cout << "Hello World!" << std::endl;
+
+    if(inputs.size() == 0)
+    {
+        std::cerr << "no input files\nuse --help option for more info" << std::endl;
+        return -1;
+    }
+
+    // TODO: Benchmarking
+    for(std::string& path : inputs)
+    {
+        Data d = Data(2, path.c_str());
+        d.read();
+        size_t n = d.getDimension();
+
+        std::cout << "Dimension: " << n << std::endl;
+        std::cout << "DistanceMatrix: " << std::endl;
+        d.printMatrixDist();
+    }
+        
     return 0;
 }

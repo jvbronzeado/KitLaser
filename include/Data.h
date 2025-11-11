@@ -13,7 +13,7 @@
 
 class Data{
 public:
-	Data( int, char * );
+	Data( int, const char * );
 
 	void read();
 	void printMatrixDist();
