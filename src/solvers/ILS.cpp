@@ -45,8 +45,8 @@ Solution ILSSolver::Solve(Data& d)
             bestOfAll = best;
     }
     */
-
-    std::vector<int> seq = this->GetRandom3Sequence();
+    this->GenerateRandom3Sequence();
+    std::vector<int>& seq = this->si;
     std::cout << "max n: " << this->current_data->getDimension() << "|" << seq[0] << ", " << seq[1] << ", " << seq[2] << std::endl;
     
     return bestOfAll;
@@ -69,31 +69,25 @@ void ILSSolver::BuscaLocal(Solution& s)
    
 }
 
-std::vector<int> ILSSolver::GetRandom3Sequence()
+void ILSSolver::GenerateRandom3Sequence()
 {
     assert(this->current_data != nullptr);
-    
+
+    // automaticamente gera o s' e o CL, e salva na classe
     int dimension = this->current_data->getDimension();
 
-    // p1: from 1 to n-2
-    // p2: from p1 + 1 to n-1
-    // p3: from p2 + 1 to n
-    
-    int p1 = rand() % (dimension - 2) + 1;    
-    int p2 = rand() % ((dimension - 1) - p1) + p1 + 1;
-    int p3 = rand() % (dimension - p2) + p2 + 1;
-    
-    std::vector<int> points = {p1, p2, p3};
-    std::vector<int> result(3);
-    
-    // get shuffled result of p1/p2/p3
-    int i = 0;
-    while(points.size() > 0)
+    this->cl.resize(dimension);
+    this->si.resize(3);
+
+    for(int i = 0; i < dimension; i++)
     {
-        int chosen = rand() % points.size();
-        result[i++] = points[chosen];
-        points.erase(points.begin() + chosen);
+        this->cl[i] = i + 1;
     }
 
-    return result;
+    for(int i = 0; i < 3; i++)
+    {
+        int chosen = rand() % this->cl.size();
+        this->si[i] = this->cl[chosen];
+        this->cl.erase(this->cl.begin() + chosen);
+    }
 }

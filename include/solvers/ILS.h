@@ -20,9 +20,12 @@ private:
     void BuscaLocal(Solution& s);
 
     // helper functions
-    std::vector<int> GetRandom3Sequence();
+    void GenerateRandom3Sequence();
 
     Data* current_data;
+
+    std::vector<int> cl;
+    std::vector<int> si;
 };
 
 #endif
