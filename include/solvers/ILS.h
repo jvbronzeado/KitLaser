@@ -31,7 +31,13 @@ private:
     // helper functions
     void GenerateRandom3Sequence();
     void GenerateInsertionCosts(Solution& s);
+
+    // neighbourhood structures
     bool BestImprovementSwap(Solution& s);
+    bool BestImprovementOPTOPT(Solution& s);
+    // TODO: REINSERTION-N3
+    // TODO: OR-OPT-2-N4
+    // TODO: OR-OPT-3-N5
 
     Data* current_data;
 
