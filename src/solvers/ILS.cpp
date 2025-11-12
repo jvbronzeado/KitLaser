@@ -49,6 +49,8 @@ Solution ILSSolver::Solve(Data& d)
             bestOfAll = best;
     }
 
+    std::cout << "Count: " << bestOfAll.sequence.size() << " " << this->current_data->getDimension() -1 << std::endl;
+    
     bestOfAll.Print();
     std::cout << "Cost: " << bestOfAll.cost << std::endl;
     return bestOfAll;
@@ -65,7 +67,7 @@ Solution ILSSolver::Construcao()
 
     double** c = this->current_data->getMatrixCost();
     for (size_t i = 0; i < s.sequence.size() - 1; i++)
-        s.cost += c[s.sequence[i]][s.sequence[i + 1]];
+        s.cost += c[s.sequence[i]-1][s.sequence[i + 1]-1];
 
     while(this->cl.empty() == false)
     {
@@ -83,7 +85,7 @@ Solution ILSSolver::Construcao()
         this->cl.erase(this->cl.begin() + this->insertion_costs[chosen].node_index);
     }
 
-    s.cost += c[s.sequence.back()][s.sequence.front()];    
+    s.cost += c[s.sequence.back()-1][s.sequence.front()-1];    
     s.sequence.push_back(s.sequence.front());
 
     return s;
@@ -137,7 +139,7 @@ void ILSSolver::GenerateRandom3Sequence()
     assert(this->current_data != nullptr);
 
     // automaticamente gera o s' e o CL, e salva na classe
-    int dimension = this->current_data->getDimension()-1;
+    int dimension = this->current_data->getDimension();
 
     this->cl.resize(dimension);
     this->si.resize(3);
@@ -171,7 +173,7 @@ void ILSSolver::GenerateInsertionCosts(Solution& s)
         for(size_t b = 0; b < this->cl.size(); b++)
         {
             int k = this->cl[b];
-            this->insertion_costs[l].cost = c[i][k] + c[k][j] - c[i][j];
+            this->insertion_costs[l].cost = c[i-1][k-1] + c[k-1][j-1] - c[i-1][j-1];
             this->insertion_costs[l].node_index = b;
             this->insertion_costs[l].removed_edge = a;
             l++;
@@ -202,8 +204,8 @@ bool ILSSolver::BestImprovementSwap(Solution& s)
             double delta = 0.0;
             if(j == i + 1)
             {
-                delta = c[vi_prev][vj] + c[vi][vj_next] + c[vj][vi]
-                        - c[vi_prev][vi] - c[vi][vj] - c[vj][vj_next];
+                delta = c[vi_prev-1][vj-1] + c[vi-1][vj_next-1] + c[vj-1][vi-1]
+                        - c[vi_prev-1][vi-1] - c[vi-1][vj-1] - c[vj-1][vj_next-1];
             }
             else
             {
@@ -212,9 +214,9 @@ bool ILSSolver::BestImprovementSwap(Solution& s)
                 // meaning c[vi][vi_next] would be removed twice because of c[vj_prev][vj]
                 // and c[vj][vi_next] and c[vj_prev][vi] would both be equal to 0
                 // resulting on a delta lesser than 0
-                delta = -c[vi_prev][vi] - c[vi][vi_next] + c[vi_prev][vj]
-                        + c[vj][vi_next] - c[vj_prev][vj] - c[vj][vj_next]
-                        + c[vj_prev][vi] + c[vi][vj_next];
+                delta = -c[vi_prev-1][vi-1] - c[vi-1][vi_next-1] + c[vi_prev-1][vj-1]
+                        + c[vj-1][vi_next-1] - c[vj_prev-1][vj-1] - c[vj-1][vj_next-1]
+                        + c[vj_prev-1][vi-1] + c[vi-1][vj_next-1];
             }
 
             if(delta < best_delta)
@@ -253,7 +255,7 @@ bool ILSSolver::BestImprovementOPTOPT(Solution& s)
             int vj = s.sequence[j];
             int vj_next = s.sequence[j + 1];
 
-            double delta = -c[vi][vi_next] - c[vj][vj_next] + c[vi][vj] + c[vi_next][vj_next];
+            double delta = -c[vi-1][vi_next-1] - c[vj-1][vj_next-1] + c[vi-1][vj-1] + c[vi_next-1][vj_next-1];
             if(delta < best_delta)
             {
                 best_delta = delta;
@@ -302,8 +304,8 @@ bool ILSSolver::BestImprovementOrOpt(Solution& s, uint8_t len)
             int vj = s.sequence[j];
             int vj_next = s.sequence[j + 1];
 
-            double delta = c[vj][vi] + c[vib_last][vj_next] + c[vi_prev][vi_next]
-                           - c[vi_prev][vi] - c[vib_last][vi_next] - c[vj][vj_next];
+            double delta = c[vj-1][vi-1] + c[vib_last-1][vj_next-1] + c[vi_prev-1][vi_next-1]
+                           - c[vi_prev-1][vi-1] - c[vib_last-1][vi_next-1] - c[vj-1][vj_next-1];
             if(delta < best_delta)
             {
                 best_delta = delta;
