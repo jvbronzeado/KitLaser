@@ -1,7 +1,5 @@
 #include "solvers/ILS.h"
-
-#define MAX_ITER 5
-#define MAX_ITER_ILS 5
+#include <chrono>
 
 bool compare_ils_insertion_infos(const ILSInsertionInfo& a, const ILSInsertionInfo& b)
 {
@@ -26,13 +24,18 @@ Solution ILSSolver::Solve(Data& d)
     Solution bestOfAll;
     bestOfAll.cost = INFINITY;
 
-    for(int i = 0; i < MAX_ITER; i++)
+    int dimension = d.getDimension();
+    
+    const int max_iter = 50;
+    const int max_iter_ils = dimension >= 150 ? (dimension >> 1) : dimension;
+
+    for(int i = 0; i < max_iter; i++)
     {
         Solution s = this->Construcao();
         Solution best = s;
 
         int iterIls = 0;
-        while(iterIls <= MAX_ITER_ILS)
+        while(iterIls <= max_iter_ils)
         {
             this->BuscaLocal(s);
             if(s.cost < best.cost)
@@ -48,11 +51,7 @@ Solution ILSSolver::Solve(Data& d)
         if(best.cost < bestOfAll.cost)
             bestOfAll = best;
     }
-
-    std::cout << "Count: " << bestOfAll.sequence.size() << " " << this->current_data->getDimension() -1 << std::endl;
     
-    bestOfAll.Print();
-    std::cout << "Cost: " << bestOfAll.cost << std::endl;
     return bestOfAll;
 }
 
@@ -93,11 +92,37 @@ Solution ILSSolver::Construcao()
 
 Solution ILSSolver::Pertubacao(Solution& s)
 {
-    return s;
+    Solution out;
+    out.sequence = s.sequence;
+
+    // calculate block 1 and block 2 length
+    int dim = this->current_data->getDimension();
+    
+    int s1len = rand() % std::max(1, dim/10 - 1) + 2;
+    int s2len = rand() % std::max(1, dim/10 - 1) + 2;
+
+    size_t seq_size = s.sequence.size() - 2; // ignore start/end
+
+    // calculate where block 1 and block 2 will start
+    int s1start = rand() % (seq_size - s2len - s1len + 1) + 1;
+    int s2start = rand() % (seq_size - (s1start - 1) - s1len - s2len + 1) + s1start + s1len;
+
+    // swap blocks
+    std::rotate(out.sequence.begin() + s1start, out.sequence.begin() + s2start, out.sequence.begin() + s2start + s2len);
+
+    // calculate cost
+    out.cost = 0;
+    for(size_t i = 0; i < out.sequence.size() - 1; i++)
+    {
+        out.cost += this->current_data->getDistance(out.sequence[i], out.sequence[i + 1]);
+    }
+
+    return out;
 }
 
 void ILSSolver::BuscaLocal(Solution& s)
 {
+    auto start = std::chrono::high_resolution_clock::now();
     std::vector<int> NL = {1, 2, 3, 4, 5};
     bool improved = false;
 

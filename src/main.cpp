@@ -1,3 +1,4 @@
+#include <chrono>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -145,12 +146,29 @@ int main(int argc, const char* argv[])
     // TODO: All solvers
     
     // TODO: Benchmarking
+    
     for(std::string& path : inputs)
-    {
+    {   
         Data d = Data(2, path.c_str());
         d.read();
 
-        solver->Solve(d);
+        auto start = std::chrono::high_resolution_clock::now();
+        
+        Solution s = solver->Solve(d);
+        s.Print();
+        std::cout << "total cost: " << s.cost << std::endl;
+
+        if(benchmark)
+        {
+            // Record the ending time point
+            auto end = std::chrono::high_resolution_clock::now();
+
+            // Calculate the duration
+            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+
+            // Print the elapsed time
+            std::cout << path << ": " << duration.count()/1000000.0 << " seconds" << std::endl;
+        }
     }
 
     delete solver;

@@ -4,6 +4,7 @@
 #include <cassert>
 #include <vector>
 #include <algorithm>
+#include <chrono>
 #include <stdint.h>
 
 #include "solvers/solver.h"
