@@ -4,6 +4,7 @@
 #include <cassert>
 #include <vector>
 #include <algorithm>
+#include <stdint.h>
 
 #include "solvers/solver.h"
 #include "Data.h"
@@ -35,9 +36,7 @@ private:
     // neighbourhood structures
     bool BestImprovementSwap(Solution& s);
     bool BestImprovementOPTOPT(Solution& s);
-    // TODO: REINSERTION-N3
-    // TODO: OR-OPT-2-N4
-    // TODO: OR-OPT-3-N5
+    bool BestImprovementOrOpt(Solution& s, uint8_t len);
 
     Data* current_data;
 

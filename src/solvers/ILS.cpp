@@ -82,8 +82,10 @@ Solution ILSSolver::Construcao()
         s.cost += this->insertion_costs[chosen].cost;
         this->cl.erase(this->cl.begin() + this->insertion_costs[chosen].node_index);
     }
-    
+
+    s.cost += c[s.sequence.back()][s.sequence.front()];    
     s.sequence.push_back(s.sequence.front());
+
     return s;
 }
 
@@ -108,10 +110,14 @@ void ILSSolver::BuscaLocal(Solution& s)
         case 2:
             improved = this->BestImprovementOPTOPT(s);
             break;
-        case 3: // TODO
-        case 4: // TODO
-        case 5: // TODO
-            improved = this->BestImprovementOPTOPT(s);
+        case 3:
+            improved = this->BestImprovementOrOpt(s, 1);
+            break;
+        case 4:
+            improved = this->BestImprovementOrOpt(s, 2);
+            break;
+        case 5:
+            improved = this->BestImprovementOrOpt(s, 3);
             break;
         }
 
@@ -271,6 +277,45 @@ bool ILSSolver::BestImprovementOPTOPT(Solution& s)
         }
 
         // apply new cost
+        s.cost += best_delta;
+        return true;
+    }
+
+    return false;
+}
+
+bool ILSSolver::BestImprovementOrOpt(Solution& s, uint8_t len)
+{
+    assert(this->current_data != nullptr);
+    double** c = this->current_data->getMatrixCost();
+
+    double best_delta = 0;
+    size_t best_i, best_j;
+    for(size_t i = 1; i < s.sequence.size() - 1 - len; i++)
+    {
+        int vi = s.sequence[i];
+        int vi_next = s.sequence[i + len];
+        int vi_prev = s.sequence[i - 1];
+        int vib_last = s.sequence[i + len - 1];
+        for(size_t j = i + len; j < s.sequence.size() - 1; j++)
+        {
+            int vj = s.sequence[j];
+            int vj_next = s.sequence[j + 1];
+
+            double delta = c[vj][vi] + c[vib_last][vj_next] + c[vi_prev][vi_next]
+                           - c[vi_prev][vi] - c[vib_last][vi_next] - c[vj][vj_next];
+            if(delta < best_delta)
+            {
+                best_delta = delta;
+                best_i = i;
+                best_j = j;
+            }
+        }
+    }
+
+    if(best_delta < 0)
+    {
+        std::rotate(s.sequence.begin() + best_i, s.sequence.begin() + best_i + len, s.sequence.begin() + best_j + 1);
         s.cost += best_delta;
         return true;
     }
