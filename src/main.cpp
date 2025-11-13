@@ -4,6 +4,7 @@
 #include <vector>
 #include <algorithm>
 #include <filesystem>
+#include <iomanip>
 
 #include "Data.h"
 
@@ -19,7 +20,6 @@ enum SolverType
 
 std::vector<std::string> inputs;
 SolverType active_solver = SolverType::ILS;
-bool benchmark = false;
 
 // argument parsing stuff
 std::vector<std::string> cmd_tokens;
@@ -46,9 +46,7 @@ void display_help_message()
                 << "  --help         Shows this help message\n"
                 << "  -s <solver>    Specify the solver to use (default: ILS) (Possibles: ILS/All)\n"
                 << "  -i <file>      File to use as input\n"
-                << "  -d <directory> Use all files from directory as input\n"
-                << "  --benchmark    Show runtime benchmark\n";
-
+                << "  -d <directory> Use all files from directory as input\n";
 }
 //
 
@@ -89,12 +87,6 @@ int main(int argc, const char* argv[])
     if(cmd_exists("--help"))
     {
         display_help_message();
-    }
-
-    // check if benchmark should be activated
-    if(cmd_exists("--benchmark"))
-    {
-        benchmark = true;        
     }
 
     // get chosen solver
@@ -145,29 +137,61 @@ int main(int argc, const char* argv[])
 
     // TODO: All solvers
     
-    // TODO: Benchmarking
+    // setup result header
+    int name_width = 0;
+    int time_width = 15;
+    int cost_width = 15; 
+    for(std::string& path : inputs)
+    {
+        name_width = std::max(name_width, (int)path.size());
+    }
+
+    name_width += 2;
+
+    // print header
+    std::cout << std::left << std::setw(name_width) << "instances"
+              << std::setw(time_width) << "time (s)"
+              << std::setw(cost_width) << "cost" << std::endl;
+
+    // print separator
+    std::cout << std::setfill('-') << std::setw(name_width + time_width + cost_width) << "" << std::endl;
+    std::cout << std::setfill(' '); // Reset fill character
     
     for(std::string& path : inputs)
-    {   
+    {
         Data d = Data(2, path.c_str());
         d.read();
 
-        auto start = std::chrono::high_resolution_clock::now();
+        int total_cost = 0;
+        double total_time = 0;
         
-        Solution s = solver->Solve(d);
-
-        if(benchmark)
+        for(int i = 0; i < 10; i++)
         {
+            auto start = std::chrono::high_resolution_clock::now();
+            Solution s = solver->Solve(d);
             // Record the ending time point
             auto end = std::chrono::high_resolution_clock::now();
 
             // Calculate the duration
             auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+            double t = duration.count()/1000000.0;
 
-            // Print the elapsed time
-            std::cout << path << ": " << duration.count()/1000000.0 << " seconds | cost: " << s.cost << std::endl;
+            total_cost += s.cost;
+            total_time += t;
         }
+
+        int cost_med = total_cost/10;
+        double time_med = total_time/10.0;
+        
+        // Print the elapsed time
+        std::cout << std::left << std::setw(name_width) << path
+                  << std::setw(time_width) << std::setprecision(6) << time_med
+                  << std::setw(cost_width) << cost_med << std::endl; 
     }
+
+    // print separator
+    std::cout << std::setfill('-') << std::setw(name_width + time_width + cost_width) << "" << std::endl;
+    std::cout << std::setfill(' '); // Reset fill character
 
     delete solver;
     return 0;
