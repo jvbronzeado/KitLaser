@@ -155,8 +155,6 @@ int main(int argc, const char* argv[])
         auto start = std::chrono::high_resolution_clock::now();
         
         Solution s = solver->Solve(d);
-        s.Print();
-        std::cout << "total cost: " << s.cost << std::endl;
 
         if(benchmark)
         {
@@ -167,7 +165,7 @@ int main(int argc, const char* argv[])
             auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
             // Print the elapsed time
-            std::cout << path << ": " << duration.count()/1000000.0 << " seconds" << std::endl;
+            std::cout << path << ": " << duration.count()/1000000.0 << " seconds | cost: " << s.cost << std::endl;
         }
     }
 

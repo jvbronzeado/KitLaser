@@ -1,5 +1,5 @@
 CXX := g++
-CXXFLAGS := -Wall -g -Wextra -std=c++17 -Iinclude
+CXXFLAGS := -O3 -std=c++17 -Iinclude
 
 OUTPUT_DIR := bin
 OBJ_DIR := obj
