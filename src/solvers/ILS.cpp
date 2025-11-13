@@ -18,7 +18,6 @@ ILSSolver::~ILSSolver()
 
 Solution ILSSolver::Solve(Data& d)
 {
-    srand(time(NULL));
     this->current_data = &d;
     
     Solution bestOfAll;
@@ -64,6 +63,8 @@ Solution ILSSolver::Construcao()
     s.sequence = this->si;
     s.cost = 0;
 
+    s.sequence.push_back(s.sequence.front());
+
     double** c = this->current_data->getMatrixCost();
     for (size_t i = 0; i < s.sequence.size() - 1; i++)
         s.cost += c[s.sequence[i]-1][s.sequence[i + 1]-1];
@@ -83,9 +84,6 @@ Solution ILSSolver::Construcao()
         s.cost += this->insertion_costs[chosen].cost;
         this->cl.erase(this->cl.begin() + this->insertion_costs[chosen].node_index);
     }
-
-    s.cost += c[s.sequence.back()-1][s.sequence.front()-1];    
-    s.sequence.push_back(s.sequence.front());
 
     return s;
 }
@@ -108,7 +106,11 @@ Solution ILSSolver::Pertubacao(Solution& s)
     int s2start = rand() % (seq_size - (s1start - 1) - s1len - s2len + 1) + s1start + s1len;
 
     // swap blocks
-    std::rotate(out.sequence.begin() + s1start, out.sequence.begin() + s2start, out.sequence.begin() + s2start + s2len);
+    int block_finish = s2start + s2len;
+    std::reverse(out.sequence.begin() + s1start, out.sequence.begin() + block_finish);
+    std::reverse(out.sequence.begin() + s1start, out.sequence.begin() + s1start + s2len);
+    std::reverse(out.sequence.begin() + s1start + s2len, out.sequence.begin() + block_finish - s1len);
+    std::reverse(out.sequence.begin() + block_finish - s1len, out.sequence.begin() + block_finish);
 
     // calculate cost
     out.cost = 0;
@@ -122,7 +124,6 @@ Solution ILSSolver::Pertubacao(Solution& s)
 
 void ILSSolver::BuscaLocal(Solution& s)
 {
-    auto start = std::chrono::high_resolution_clock::now();
     std::vector<int> NL = {1, 2, 3, 4, 5};
     bool improved = false;
 
@@ -188,7 +189,6 @@ void ILSSolver::GenerateInsertionCosts(Solution& s)
 
     double** c = this->current_data->getMatrixCost();
 
-    this->insertion_costs.clear();
     this->insertion_costs.resize((s.sequence.size() - 1) * (this->cl.size()));
     size_t l = 0;
     for(size_t a = 0; a < s.sequence.size() - 1; a++)
@@ -293,15 +293,7 @@ bool ILSSolver::BestImprovementOPTOPT(Solution& s)
     if(best_delta < 0)
     {
         // apply from best_i + 1 to best_j in reverse_order
-        int left_ptr = best_i + 1;
-        int right_ptr = best_j;
-
-        while(left_ptr < right_ptr)
-        {
-            std::swap(s.sequence[left_ptr], s.sequence[right_ptr]);
-            left_ptr++;
-            right_ptr--;
-        }
+        std::reverse(s.sequence.begin() + best_i + 1, s.sequence.begin() + best_j + 1);
 
         // apply new cost
         s.cost += best_delta;
@@ -324,8 +316,13 @@ bool ILSSolver::BestImprovementOrOpt(Solution& s, uint8_t len)
         int vi_next = s.sequence[i + len];
         int vi_prev = s.sequence[i - 1];
         int vib_last = s.sequence[i + len - 1];
-        for(size_t j = i + len; j < s.sequence.size() - 1; j++)
+        for(size_t j = 0; j < s.sequence.size() - 1; j++)
         {
+            if(j >= i - 1 && j < i + len)
+            {
+                continue;
+            }
+            
             int vj = s.sequence[j];
             int vj_next = s.sequence[j + 1];
 
@@ -342,8 +339,17 @@ bool ILSSolver::BestImprovementOrOpt(Solution& s, uint8_t len)
 
     if(best_delta < 0)
     {
-        std::rotate(s.sequence.begin() + best_i, s.sequence.begin() + best_i + len, s.sequence.begin() + best_j + 1);
+        if(best_j < best_i)
+        {
+            std::rotate(s.sequence.begin() + best_j + 1, s.sequence.begin() + best_i, s.sequence.begin() + best_i + len);
+        }
+        else
+        {
+            std::rotate(s.sequence.begin() + best_i, s.sequence.begin() + best_i + len, s.sequence.begin() + best_j + 1);
+        }
+
         s.cost += best_delta;
+
         return true;
     }
 

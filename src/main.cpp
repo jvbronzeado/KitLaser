@@ -77,6 +77,7 @@ Solver* allocate_solver_from_type(SolverType type)
 
 int main(int argc, const char* argv[])
 {
+    srand(time(NULL));
     // get string tokens
     for(int i = 0; i < argc; i++)
     {
@@ -136,6 +137,8 @@ int main(int argc, const char* argv[])
     }
 
     // TODO: All solvers
+
+    std::sort(inputs.begin(), inputs.end());
     
     // setup result header
     int name_width = 0;
