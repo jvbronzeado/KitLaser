@@ -187,6 +187,7 @@ void MLPSolver::UpdateAllSubseq(Solution& s)
 
 void MLPSolver::UpdateSubseqRange(Solution& s, int begin, int end)
 {
+    // TODO: adicionar o 3.1.4 de atualizacao de subsequencia?
     int n = s.sequence.size();
 
     for(int i = 0; i < n; i++)
