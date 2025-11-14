@@ -46,7 +46,6 @@ private:
     // solve members
     std::vector<int> cl;
     std::vector<std::vector<MLPSubsequence>> subseq_matrix;
-    double mlp_total_cost = 0;
 };
 
 #endif

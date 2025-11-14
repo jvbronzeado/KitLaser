@@ -62,9 +62,6 @@ Solution MLPSolver::Solve(Data& d)
         }
     }
 
-    this->UpdateAllSubseq(bestOfAll);
-
-    bestOfAll.cost = subseq_matrix[0][bestOfAll.sequence.size()-1].C;
     return bestOfAll;
 }
 
@@ -216,13 +213,15 @@ void MLPSolver::UpdateSubseqRange(Solution& s, int begin, int end)
             subseq_matrix[i][j] = subseq_matrix[i][j+1].Concatenate(this->current_data, subseq_matrix[j][j]);
         }
     }
+
+    s.cost = subseq_matrix[0][n-1].C;
 }
 
 bool MLPSolver::BestImprovementSwap(Solution& s)
 {
     assert(this->current_data != nullptr);
 
-    double best_cost = s.cost;
+    double best_cost = this->subseq_matrix[0][s.sequence.size() - 1].C;
     size_t best_i, best_j;
     for(size_t i = 1; i < s.sequence.size() - 2; i++)
     {
@@ -239,8 +238,8 @@ bool MLPSolver::BestImprovementSwap(Solution& s)
             else
             {
                 MLPSubsequence sigma_1 = this->subseq_matrix[0][i-1].Concatenate(this->current_data, this->subseq_matrix[j][j]);
-                MLPSubsequence sigma_2 = sigma_1.Concatenate(this->current_data, this->subseq_matrix[i][i]);
-                MLPSubsequence sigma_3 = sigma_2.Concatenate(this->current_data, this->subseq_matrix[i + 1][j - 1]);
+                MLPSubsequence sigma_2 = sigma_1.Concatenate(this->current_data, this->subseq_matrix[i + 1][j - 1]);
+                MLPSubsequence sigma_3 = sigma_2.Concatenate(this->current_data, this->subseq_matrix[i][i]);
                 MLPSubsequence sigma_4 = sigma_3.Concatenate(this->current_data, this->subseq_matrix[j + 1][s.sequence.size()-1]);
                 delta = sigma_4.C;
             }
@@ -254,10 +253,9 @@ bool MLPSolver::BestImprovementSwap(Solution& s)
         }
     }
 
-    if(best_cost < s.cost)
+    if(best_cost < this->subseq_matrix[0][s.sequence.size() - 1].C)
     {
         std::swap(s.sequence[best_i], s.sequence[best_j]);
-        s.cost = best_cost;
         this->UpdateSubseqRange(s, best_i, best_j);
         return true;
     }
@@ -267,7 +265,7 @@ bool MLPSolver::BestImprovementSwap(Solution& s)
 
 bool MLPSolver::BestImprovementOPTOPT(Solution& s)
 {
-    double best_cost = s.cost;
+    double best_cost = this->subseq_matrix[0][s.sequence.size() - 1].C;
     size_t best_i, best_j;
     for(size_t i = 0; i < s.sequence.size() - 2; i++)
     {
@@ -284,7 +282,7 @@ bool MLPSolver::BestImprovementOPTOPT(Solution& s)
         }
     }
 
-    if(best_cost < s.cost)
+    if(best_cost < this->subseq_matrix[0][s.sequence.size() - 1].C)
     {
         // apply from best_i + 1 to best_j in reverse_order
         std::reverse(s.sequence.begin() + best_i + 1, s.sequence.begin() + best_j + 1);
@@ -302,7 +300,7 @@ bool MLPSolver::BestImprovementOrOpt(Solution& s, uint8_t len)
 {
     assert(this->current_data != nullptr);
 
-    double best_cost = s.cost;
+    double best_cost = this->subseq_matrix[0][s.sequence.size() - 1].C;
     size_t best_i, best_j;
     for(size_t i = 1; i < s.sequence.size() - 1 - len; i++)
     {
@@ -338,7 +336,7 @@ bool MLPSolver::BestImprovementOrOpt(Solution& s, uint8_t len)
         }
     }
 
-    if(best_cost < 0)
+    if(best_cost < this->subseq_matrix[0][s.sequence.size() - 1].C)
     {
         if(best_j < best_i)
         {
