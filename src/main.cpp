@@ -10,16 +10,18 @@
 
 #include "solvers/solver.h"
 #include "solvers/ILS.h"
+#include "solvers/MLP.h"
 
 enum SolverType
 {
     None,
     ILS,
+    MLP,
     All
 };
 
 std::vector<std::string> inputs;
-SolverType active_solver = SolverType::ILS;
+SolverType active_solver = SolverType::MLP;
 
 // argument parsing stuff
 std::vector<std::string> cmd_tokens;
@@ -56,6 +58,10 @@ SolverType get_solver_from_name(const std::string& solver)
     {
         return SolverType::ILS;
     }
+    else if(solver == "MLP")
+    {
+        return SolverType::MLP;
+    }
     else if(solver == "All")
     {
         return SolverType::All;
@@ -68,6 +74,8 @@ Solver* allocate_solver_from_type(SolverType type)
     {
         case ILS:
             return new ILSSolver();
+        case MLP:
+            return new MLPSolver();
         case None:
         case All:
         default:
