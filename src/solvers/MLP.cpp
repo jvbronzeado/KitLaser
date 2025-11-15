@@ -37,10 +37,11 @@ Solution MLPSolver::Solve(Data& d)
     for(int i = 0; i < max_iter; i++)
     {
         Solution s = this->Construcao();
-        Solution best = s;
 
         this->subseq_matrix = std::vector<std::vector<MLPSubsequence>>(d.getDimension() + 1, std::vector<MLPSubsequence>(d.getDimension() + 1));
         this->UpdateAllSubseq(s);
+
+        Solution best = s;
 
         int iterIls = 0;
         while(iterIls <= max_iter_ils)
@@ -98,14 +99,12 @@ Solution MLPSolver::Construcao()
         int max_i = std::ceil(alpha * this->cl.size());
         int chosen = rand() % max_i;
 
-        s.cost += d->getDistance(r, this->cl[chosen]);
         s.sequence.push_back(this->cl[chosen]);
 
         r = this->cl[chosen];
         this->cl.erase(this->cl.begin() + chosen);
     }
 
-    s.cost += d->getDistance(r, 1);
     s.sequence.push_back(1);
 
     return s;
@@ -136,8 +135,7 @@ Solution MLPSolver::Pertubacao(Solution& s)
     std::reverse(out.sequence.begin() + block_finish - s1len, out.sequence.begin() + block_finish);
 
     // calculate cost
-    this->UpdateSubseqRange(s, s1start, block_finish-1);
-    out.cost = this->subseq_matrix[0][s.sequence.size()-1].C;
+    this->UpdateSubseqRange(out, s1start, block_finish-1);
 
     return out;
 }
@@ -350,7 +348,6 @@ bool MLPSolver::BestImprovementOrOpt(Solution& s, uint8_t len)
             this->UpdateSubseqRange(s, best_i, best_j);
         }
 
-        s.cost = best_cost;
         return true;
     }
 
