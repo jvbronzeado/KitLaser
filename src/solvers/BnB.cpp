@@ -1,4 +1,5 @@
 #include "solvers/BnB.h"
+#include "solvers/ILS.h"
 #include <limits>
 
 Solution BNBSolver::Solve(Data& d)
@@ -6,19 +7,45 @@ Solution BNBSolver::Solve(Data& d)
     this->current_data = &d;
     int n = d.getDimension();
 
-    // calcula matriz de custo
-	double **cost = new double*[n];
+    // usa o ILS para resolver o TSP de forma heuristica
+    Solution heuristico = ILSSolver().Solve(d);
+    
+    // cria a matriz de custo q vai ser utilizada pra o hungarian    
+	this->cost = new double*[n];
 	for (int i = 0; i < n; i++){
 		cost[i] = new double[n];
+	}
+
+	BNBNode test_node;
+	this->UpdateNode(test_node);
+
+    // limpa a matriz de custo
+	for (int i = 0; i < n; i++) delete [] cost[i];
+	delete[] this->cost;
+    return Solution();
+}
+
+void BNBSolver::UpdateNode(BNBNode& node)
+{
+    int n = this->current_data->getDimension();
+
+    // calcula matriz de custo
+	for (int i = 0; i < n; i++){
 		for (int j = 0; j < n; j++){
 		    if(i == j)
 		    {
-		        cost[i][j] = 1000000000.0; // por algum motivo mais q isso quebra
+		        cost[i][j] = 99999999; // por algum motivo mais q isso quebra
 		        continue;
 		    }
-			cost[i][j] = d.getDistance(i+1,j+1);
+			cost[i][j] = this->current_data->getDistance(i+1,j+1);
 		}
 	}
+
+	// aplica os forbidden no custo
+	for(auto& pair : node.forbidden_arcs)
+	{
+	    cost[pair.first-1][pair.second-1] = 99999999;
+    }
 
     // pega o AP com o Hungarian Algorithm
     // TODO: Tentar implementar o hungarian algorithm
@@ -26,34 +53,31 @@ Solution BNBSolver::Solve(Data& d)
 	int mode = HUNGARIAN_MODE_MINIMIZE_COST;
 	hungarian_init(&p, cost, n, n, mode); // Carregando o problema
 	hungarian_solve(&p);
-
-	hungarian_print_assignment(&p);
-
-	// calcula o subtour inicial
-    std::vector<std::vector<int>> subtours = this->GetSubtoursFromAP(&p);
+    
+	// calcula o subtour inicial e seu menor subtour
+    this->GetSubtoursFromAP(node, p);
 
     // printa o subtour calculado
-    for(int i = 0; i < subtours.size(); i++)
+    for(int i = 0; i < node.subtour.size(); i++)
     {
-        for(int j = 0; j < subtours[i].size(); j++)
+        for(int j = 0; j < node.subtour[i].size(); j++)
         {
-            std::cout << subtours[i][j] << " ";
+            std::cout << node.subtour[i][j] << " ";
         }
         std::cout << std::endl;
     }
-	
+    
     // limpa o hungarian algorithm
 	hungarian_free(&p);
-	for (int i = 0; i < n; i++) delete [] cost[i];
-	delete [] cost;
-    return Solution();
 }
 
-std::vector<std::vector<int>> BNBSolver::GetSubtoursFromAP(hungarian_problem_t* ap)
+void BNBSolver::GetSubtoursFromAP(BNBNode& node, hungarian_problem_t& ap)
 {
-    std::vector<std::vector<int>> output;
-
+    node.subtour.clear();
     int n = this->current_data->getDimension();
+
+    int smallest_subtour_index = 0;
+    int smallest_subtour_size = std::numeric_limits<int>::max();
     
     while(true)
     {
@@ -65,7 +89,7 @@ std::vector<std::vector<int>> BNBSolver::GetSubtoursFromAP(hungarian_problem_t* 
         {
             for(int j = 0; j < n; j++)
             {
-                if(ap->assignment[i][j] == 1)
+                if(ap.assignment[i][j] == 1)
                 {
                     current_row = i;
                     break;
@@ -82,11 +106,11 @@ std::vector<std::vector<int>> BNBSolver::GetSubtoursFromAP(hungarian_problem_t* 
             // procura se existe um ponto para ir na linha atual
             for(int j = 0; j < n; j++)
             {
-                if(ap->assignment[current_row][j] == 1)
+                if(ap.assignment[current_row][j] == 1)
                 {
                     success = true;
                     subtour.push_back(current_row + 1);
-                    ap->assignment[current_row][j] = 0;
+                    ap.assignment[current_row][j] = 0;
                     current_row = j; // vai para o proximo ponto
                     break;
                 }
@@ -100,13 +124,20 @@ std::vector<std::vector<int>> BNBSolver::GetSubtoursFromAP(hungarian_problem_t* 
 
         if(subtour.size() != 0)
         {
-            output.push_back(subtour);
+            if(subtour.size() < smallest_subtour_size)
+            {
+                smallest_subtour_index = node.subtour.size();
+                smallest_subtour_size = subtour.size();
+            }
+            
+            node.subtour.push_back(subtour);
         }
         else
         {
             break;
         }
     }
-    
-    return output;
+
+    node.chosen = smallest_subtour_index;
+    node.feasible = node.subtour.size() == 1;
 }

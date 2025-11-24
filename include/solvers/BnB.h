@@ -8,6 +8,15 @@
 #include "solvers/solver.h"
 #include "solvers/ILS.h"
 
+struct BNBNode
+{
+    std::vector<std::pair<int, int>> forbidden_arcs; // lista de arcos proibidos do nó
+    std::vector<std::vector<int>> subtour; // conjunto de subtours da solução
+    double lower_bound; // custo total da solução do algoritmo hungaro
+    int chosen; // indice de menor subtour
+    bool feasible; // indica se a solucao AP_TSP é viavel
+};
+
 class BNBSolver : public Solver
 {
 public:
@@ -17,9 +26,12 @@ public:
     Solution Solve(Data& d);
 private:
     std::vector<std::vector<int>> HungarianAlgorithm(Data& d);
-    std::vector<std::vector<int>> GetSubtoursFromAP(hungarian_problem_t* AP);
+
+    void UpdateNode(BNBNode& node);
+    void GetSubtoursFromAP(BNBNode& node, hungarian_problem_t& AP);
     
     Data* current_data;
+    double** cost;
 };
 
 #endif
