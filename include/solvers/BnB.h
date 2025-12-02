@@ -1,7 +1,8 @@
 #ifndef SOLVERS_BNB_H_
 #define SOLVERS_BNB_H_
 
-#include <limits>
+#include <list>
+#include <queue>
 
 #include "hungarian.h"
 #include "Data.h"
@@ -15,6 +16,11 @@ struct BNBNode
     double lower_bound; // custo total da solução do algoritmo hungaro
     int chosen; // indice de menor subtour
     bool feasible; // indica se a solucao AP_TSP é viavel
+    
+    bool operator<(const BNBNode& other) const
+    {
+        return this->lower_bound > other.lower_bound; // para o priority_queue
+    }
 };
 
 class BNBSolver : public Solver

@@ -178,7 +178,7 @@ int main(int argc, const char* argv[])
         int total_cost = 0;
         double total_time = 0;
         
-        for(int i = 0; i < 10; i++)
+        for(int i = 0; i < 1; i++)
         {
             auto start = std::chrono::high_resolution_clock::now();
             Solution s = solver->Solve(d);
@@ -193,8 +193,8 @@ int main(int argc, const char* argv[])
             total_time += t;
         }
 
-        int cost_med = total_cost/10;
-        double time_med = total_time/10.0;
+        int cost_med = total_cost/1;
+        double time_med = total_time/1.0;
         
         // Print the elapsed time
         std::cout << std::left << std::setw(name_width) << path

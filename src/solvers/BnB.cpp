@@ -1,6 +1,10 @@
 #include "solvers/BnB.h"
 #include "solvers/ILS.h"
+#include <algorithm>
 #include <limits>
+
+// pode ser 0 para DFS, 1 para BFS, e 2 para minimo LB
+#define BRANCHING_STRATEGY 0
 
 Solution BNBSolver::Solve(Data& d)
 {
@@ -16,13 +20,78 @@ Solution BNBSolver::Solve(Data& d)
 		cost[i] = new double[n];
 	}
 
-	BNBNode test_node;
-	this->UpdateNode(test_node);
+    // cria o node da raiz da tree
+	BNBNode root;
+	this->UpdateNode(root);
+
+	// cria a arvore
+	#if BRANCHING_STRATEGY != 2
+    std::list<BNBNode> tree;
+    tree.push_back(root);
+    #else
+    std::priority_queue<BNBNode> tree;
+    tree.push(root);
+	#endif
+
+	double upper_bound = heuristico.cost + 1;
+
+    // algoritmo
+	while(!tree.empty())
+	{
+	    #if BRANCHING_STRATEGY == 0
+	    BNBNode node = tree.back();
+	    tree.pop_back();
+	    #elif BRANCHING_STRATEGY == 1
+        BNBNode node = tree.front();
+        tree.pop_front();
+        #else
+        BNBNode node = tree.top();
+        tree.pop();
+        #endif
+
+        if(node.lower_bound > upper_bound)
+        {
+            continue;
+        }
+
+        if(node.feasible)
+        {
+            upper_bound = std::min(upper_bound, node.lower_bound);
+        }
+        else
+        {
+            for(int i = 0; i < node.subtour[node.chosen].size() - 1; i++)
+            {
+                BNBNode n;
+                n.forbidden_arcs = node.forbidden_arcs;
+
+                std::pair<int,int> arc = {
+                    node.subtour[node.chosen][i],
+                    node.subtour[node.chosen][i + 1]
+                };
+
+                n.forbidden_arcs.push_back(arc);
+                this->UpdateNode(n);
+
+                if(n.lower_bound <= upper_bound)
+                {
+                    #if BRANCHING_STRATEGY != 2
+                    tree.push_back(n);
+                    #else
+                    tree.push(n);      
+                    #endif
+                }
+            }
+        }
+	}
 
     // limpa a matriz de custo
 	for (int i = 0; i < n; i++) delete [] cost[i];
 	delete[] this->cost;
-    return Solution();
+
+	Solution optimal;
+	optimal.cost = upper_bound;
+    return optimal;
 }
 
 void BNBSolver::UpdateNode(BNBNode& node)
@@ -52,20 +121,10 @@ void BNBSolver::UpdateNode(BNBNode& node)
 	hungarian_problem_t p;
 	int mode = HUNGARIAN_MODE_MINIMIZE_COST;
 	hungarian_init(&p, cost, n, n, mode); // Carregando o problema
-	hungarian_solve(&p);
+	node.lower_bound = hungarian_solve(&p);
     
 	// calcula o subtour inicial e seu menor subtour
     this->GetSubtoursFromAP(node, p);
-
-    // printa o subtour calculado
-    for(int i = 0; i < node.subtour.size(); i++)
-    {
-        for(int j = 0; j < node.subtour[i].size(); j++)
-        {
-            std::cout << node.subtour[i][j] << " ";
-        }
-        std::cout << std::endl;
-    }
     
     // limpa o hungarian algorithm
 	hungarian_free(&p);
@@ -78,7 +137,7 @@ void BNBSolver::GetSubtoursFromAP(BNBNode& node, hungarian_problem_t& ap)
 
     int smallest_subtour_index = 0;
     int smallest_subtour_size = std::numeric_limits<int>::max();
-    
+
     while(true)
     {
         std::vector<int> subtour;
@@ -99,7 +158,7 @@ void BNBSolver::GetSubtoursFromAP(BNBNode& node, hungarian_problem_t& ap)
             if(current_row != -1)
                 break;
         }
-        
+
         while(current_row != -1) // itera entre os assignments até o subtour repetir
         {
             bool success = false; // se for verdadeiro é pq achou um proximo ponto para ir
@@ -118,6 +177,7 @@ void BNBSolver::GetSubtoursFromAP(BNBNode& node, hungarian_problem_t& ap)
 
             if(not success)
             {
+                subtour.push_back(current_row + 1);                
                 break;
             }
         }
@@ -139,5 +199,5 @@ void BNBSolver::GetSubtoursFromAP(BNBNode& node, hungarian_problem_t& ap)
     }
 
     node.chosen = smallest_subtour_index;
-    node.feasible = node.subtour.size() == 1;
+    node.feasible = (node.subtour.size() == 1) && (node.subtour[0][0] == node.subtour[0][node.subtour[0].size()-1] && node.subtour[0].size() == (n + 1));
 }
