@@ -4,7 +4,7 @@
 #include <limits>
 
 // pode ser 0 para DFS, 1 para BFS, e 2 para minimo LB
-#define BRANCHING_STRATEGY 0
+#define BRANCHING_STRATEGY 2
 
 Solution BNBSolver::Solve(Data& d)
 {

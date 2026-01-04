@@ -12,6 +12,7 @@
 #include "solvers/ILS.h"
 #include "solvers/MLP.h"
 #include "solvers/BnB.h"
+#include "solvers/RL.h"
 
 enum SolverType
 {
@@ -19,11 +20,12 @@ enum SolverType
     ILS,
     MLP,
     BNB,
+    RL,
     All
 };
 
 std::vector<std::string> inputs;
-SolverType active_solver = SolverType::BNB;
+SolverType active_solver = SolverType::RL;
 
 // argument parsing stuff
 std::vector<std::string> cmd_tokens;
@@ -48,7 +50,7 @@ void display_help_message()
     std::cout   << "Usage: " << cmd_tokens[0] << " [options]\n"
                 << "Options:\n"
                 << "  --help         Shows this help message\n"
-                << "  -s <solver>    Specify the solver to use (default: BNB) (Possibles: ILS/MLP/BNB)\n"
+                << "  -s <solver>    Specify the solver to use (default: RL) (Possibles: ILS/MLP/BNB)\n"
                 << "  -i <file>      File to use as input\n"
                 << "  -d <directory> Use all files from directory as input\n";
 }
@@ -68,6 +70,10 @@ SolverType get_solver_from_name(const std::string& solver)
     {
         return SolverType::BNB;
     }
+    else if(solver == "RL")
+    {
+        return SolverType::RL;
+    }
     return SolverType::None;
 }
 
@@ -80,6 +86,8 @@ Solver* allocate_solver_from_type(SolverType type)
             return new MLPSolver();
         case BNB:
             return new BNBSolver();
+        case RL:
+            return new RLSolver();
         default:
             return nullptr;
     }
