@@ -1,5 +1,5 @@
-#ifndef SOLVERS_BNB_H_
-#define SOLVERS_BNB_H_
+#ifndef SOLVERS_RL_H_
+#define SOLVERS_RL_H_
 
 #include <list>
 #include <queue>

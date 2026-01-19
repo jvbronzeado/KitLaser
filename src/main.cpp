@@ -13,6 +13,9 @@
 #include "solvers/MLP.h"
 #include "solvers/BnB.h"
 #include "solvers/RL.h"
+#include "solvers/BnC.h"
+
+#include <ilcplex/cplex.h>
 
 enum SolverType
 {
@@ -21,11 +24,12 @@ enum SolverType
     MLP,
     BNB,
     RL,
+    BNC,
     All
 };
 
 std::vector<std::string> inputs;
-SolverType active_solver = SolverType::RL;
+SolverType active_solver = SolverType::BNC;
 
 // argument parsing stuff
 std::vector<std::string> cmd_tokens;
@@ -74,6 +78,10 @@ SolverType get_solver_from_name(const std::string& solver)
     {
         return SolverType::RL;
     }
+    else if(solver == "BNC")
+    {
+        return SolverType::BNC;
+    }
     return SolverType::None;
 }
 
@@ -88,6 +96,8 @@ Solver* allocate_solver_from_type(SolverType type)
             return new BNBSolver();
         case RL:
             return new RLSolver();
+        case BNC:
+            return new BNCSolver();
         default:
             return nullptr;
     }

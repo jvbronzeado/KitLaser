@@ -1,5 +1,19 @@
+# CPLEX config
+CPLEX_STUDIO_PATH := $(HOME)/ILOG/CPLEX_Studio2212
+CPLEX_PATH := $(CPLEX_STUDIO_PATH)/cplex
+CONCERT_PATH := $(CPLEX_STUDIO_PATH)/concert
+
+CPLEX_LIB_PATH := $(CPLEX_PATH)/lib/x86-64_linux/static_pic/
+CONCERT_LIB_PATH := $(CONCERT_PATH)/lib/x86-64_linux/static_pic/
+
+CXX_CPLEX_INCLUDES := -I$(CPLEX_PATH)/include -I$(CONCERT_PATH)/include
+CXX_CPLEX_LIBS := -L$(CPLEX_LIB_PATH) -L$(CONCERT_LIB_PATH)
+
+
 CXX := g++
-CXXFLAGS := -O3 -std=c++17 -Iinclude
+CXXFLAGS := -O3 -std=c++17 -DIL_STD -Iinclude -Isrc $(CXX_CPLEX_INCLUDES)
+LDFLAGS := $(CXX_CPLEX_LIBS)
+LDLIBS := -lilocplex -lconcert -lcplex -lm -lpthread -ldl
 
 OUTPUT_DIR := bin
 OBJ_DIR := obj
@@ -15,7 +29,7 @@ DEPS := $(OBJS:.o=.d)
 all: $(OUTPUT_DIR) $(OBJ_DIR) $(EXECUTABLE_PATH)
 
 # include generated dependency files
--include $(DEPS)
+-include $(DEPS) 
 
 # guarantees output directory exists
 $(OUTPUT_DIR):
@@ -28,7 +42,7 @@ $(OBJ_DIR):
 
 # link all object files into final executable
 $(EXECUTABLE_PATH): $(OBJS)
-	$(CXX) $(OBJS) -o $@
+	$(CXX) $(OBJS) -o $@ $(LDFLAGS) $(LDLIBS)
 
 # compile .cpp files into obj/*.o
 $(OBJ_DIR)/%.o: src/%.cpp
