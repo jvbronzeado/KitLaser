@@ -134,6 +134,7 @@ vector<vector<int>> MaxBack(double** x, int n) {
 
         if(cut_value < 2 - epsilon && s.size() >= 2 && s.size() <= n - 2) {
             cutPool.push_back(s);
+            break;
         }
     }
     
