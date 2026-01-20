@@ -65,8 +65,8 @@ std::vector<int> MaxBackFromS0(double& out_cut, std::vector<int>& out_remainder,
     }
 
     double mincut_val = cut_val;
-    std::vector<int> s = s0;
     std::vector<int> Sk(s0);
+    int bestcount = 0;
 
     int lastnode = -1;
     int penultimonode = -1;
@@ -108,8 +108,13 @@ std::vector<int> MaxBackFromS0(double& out_cut, std::vector<int>& out_remainder,
 
         if(cut_val < mincut_val) {
             mincut_val = cut_val;
-            s = Sk;
+            bestcount = Sk.size();
         }
+    }
+
+    std::vector<int> s(bestcount);
+    for(int i = 0; i < bestcount; i++) {
+        s[i] = Sk[i];
     }
 
     if(penultimonode == -1) {
@@ -122,20 +127,30 @@ std::vector<int> MaxBackFromS0(double& out_cut, std::vector<int>& out_remainder,
     return s;
 }
 
-constexpr double epsilon = 1e-6;
+constexpr double epsilon = 1e-3;
 vector<vector<int>> MaxBack(double** x, int n) {
+    static constexpr int MAX_CUTS = 20;
     vector<vector<int>> cutPool;
 
+    // q coisa feia meu deus
+    priority_queue<pair<double, vector<int>>, vector<pair<double, vector<int>>>, greater<pair<double, vector<int>>>> best_values;
+    
     for(int i = 0; i < n; i++) {
         double cut_value = 0;
 
         std::vector<int> remainder;
-        vector<int> s = MaxBackFromS0(cut_value, remainder, {i}, x, n);
+        vector<int> s = MaxBackFromS0(cut_value, remainder, {0}, x, n);
 
         if(cut_value < 2 - epsilon && s.size() >= 2 && s.size() <= n - 2) {
-            cutPool.push_back(s);
-            break;
+            best_values.push(make_pair(cut_value, s));
         }
+    }
+
+    for(int i = 0; i < MAX_CUTS && !best_values.empty(); i++) {
+        pair<double, vector<int>> best = best_values.top();
+        best_values.pop();
+
+        cutPool.push_back(best.second);
     }
     
     return cutPool;
@@ -192,8 +207,6 @@ int shrink(double** x, std::vector<std::vector<int>>& nodemap, int n, int s, int
 }
 
 vector<vector<int>> MinCut(double** x, int n) {
-    vector<vector<int>> cutPool;
-
     double mincut_val = std::numeric_limits<double>().infinity();
     std::vector<int> bestS;
 
@@ -212,7 +225,7 @@ vector<vector<int>> MinCut(double** x, int n) {
         if(cut_value < mincut_val) {
             mincut_val = cut_value;
 
-            // convert s to the actual indices with the nodemap
+            // converte o s para os indices verdadeiro deles com o nodemap
             bestS.clear();
             for(int j : nodemap[remainder[1]]) {
                 bestS.push_back(j);
